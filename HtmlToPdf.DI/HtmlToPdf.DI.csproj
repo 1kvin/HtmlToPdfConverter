@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="AutoMapper" Version="12.0.0" />
+      <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
+      <PackageReference Include="Hangfire" Version="1.7.31" />
+      <PackageReference Include="Hangfire.Console" Version="1.4.2" />
+      <PackageReference Include="Hangfire.Console.Extensions" Version="1.0.5" />
+      <PackageReference Include="Hangfire.MemoryStorage" Version="1.7.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.9" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="6.0.9" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\HtmlToPdf.BusinessLogic\HtmlToPdf.BusinessLogic.csproj" />
+      <ProjectReference Include="..\HtmlToPdf.DAO\HtmlToPdf.DAO.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "Progress";
+}
+<h2>@ViewData["Title"]</h2>
+
+<p>Status of your job: <strong><span id="job-status">...</span></strong></p>
+<a id="download-link" style="visibility: hidden;">Download</a>
+
+
+@section Scripts
+{
+    <script>
+        const updateProgressInterval = setInterval(updateProgress, 1000);
+        updateProgress();
+        
+        function updateProgress()
+        {
+            let xhr = new XMLHttpRequest();
+            xhr.open("GET", "/Job/GetStatus?jobId="+ "@ViewBag.JobId");
+            
+            xhr.send();
+            
+            xhr.onload = () => 
+            {
+                let response = xhr.responseText;
+                document.getElementById("job-status").innerText = response;
+                if (response === "Done" || response === "Succeeded")
+                {
+                    document.getElementById("download-link").style.visibility = "visible";
+                    document.getElementById("download-link").href = '/MediaFile/Download?jobId=' + "@ViewBag.JobId"
+                    
+                    clearInterval(updateProgressInterval);
+                }
+            }
+        }
+    </script>
+}
