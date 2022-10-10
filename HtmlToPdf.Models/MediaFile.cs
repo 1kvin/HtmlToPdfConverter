@@ -13,5 +13,6 @@ public class MediaFile
     public string Extension { get; set; } = null!;
     public string Name { get; set; } = null!;
     public byte[] Content { get; set; } = null!;
+    public string? ContentType { get; set; }
     public DateTime? UploadDate { get; set; } = null!;
 }

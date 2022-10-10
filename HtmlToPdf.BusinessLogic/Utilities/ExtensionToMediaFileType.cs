@@ -15,6 +15,11 @@ public static class ExtensionToMediaFileType
     
     public static MediaFileType Convert(string extension)
     {
+        if (!extension.StartsWith('.'))
+        {
+            extension = "." + extension;
+        }
+        
         return extension.ToLower() switch
         {
             ".html" => MediaFileType.HTML,

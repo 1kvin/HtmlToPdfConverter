@@ -4,6 +4,7 @@ using HtmlToPdf.BusinessLogic.Utilities;
 using HtmlToPdf.DAO;
 using HtmlToPdf.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace HtmlToPdf.BusinessLogic.Services.Implementations;
 
@@ -11,13 +12,15 @@ public class MediaFileSaveService : IMediaFileSaveService
 {
     public const int MaxFileSize = 512  * 1024 * 1024;
     private readonly IMediaFilesRepository mediaFilesRepository;
+    private readonly string basePath;
 
     public MediaFileSaveService(IMediaFilesRepository mediaFilesRepository)
     {
         this.mediaFilesRepository = mediaFilesRepository;
+        basePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
     }
 
-    public async Task<int> Save(IFormFile file)
+    public async Task<int> SaveFromLocalToDb(IFormFile file)
     {
         switch (file.Length)
         {
@@ -29,7 +32,7 @@ public class MediaFileSaveService : IMediaFileSaveService
 
 
         var fileName = Path.GetFileName(file.FileName);
-        var fileExtension = Path.GetExtension(fileName);
+        var fileExtension = Path.GetExtension(fileName).Replace(".", "");
 
         using var target = new MemoryStream();
 
@@ -48,5 +51,35 @@ public class MediaFileSaveService : IMediaFileSaveService
         await mediaFilesRepository.SaveChangesAsync();
 
         return mediaFile.Id;
+    }
+
+    public async Task<string> SaveFromDbToLocal(int id)
+    {
+        var mediaFileInDb = await mediaFilesRepository.MediaFiles.SingleOrDefaultAsync(x => x.Id == id);
+        
+        if (mediaFileInDb == null)
+        {
+            throw new FileNotFoundException();
+        }
+        
+        var outputPath = Path.Combine(basePath, PathUtil.saveOutputDirectory, $"{mediaFileInDb.Id}.{mediaFileInDb.Extension}");
+
+        if (File.Exists(outputPath))
+        {
+            return outputPath;
+        }
+        
+        CreateDirectoryIfNotExist(outputPath);
+        await File.WriteAllBytesAsync(outputPath, mediaFileInDb.Content);
+
+        return outputPath;
+    }
+    
+    private static void CreateDirectoryIfNotExist(string filePath)
+    {
+        if (!Directory.Exists(Path.GetDirectoryName(filePath)))
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+        }
     }
 }

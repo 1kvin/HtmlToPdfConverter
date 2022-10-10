@@ -1,5 +1,7 @@
-﻿using HtmlToPdf.DAO;
+﻿using HtmlToPdf.BusinessLogic.Exceptions;
+using HtmlToPdf.DAO;
 using HtmlToPdf.Models;
+using MockQueryable.Moq;
 using Moq;
 using Moq.EntityFrameworkCore;
 
@@ -15,7 +17,20 @@ public class ConvertJobTests
     private const int id = -1;
 
     [Test]
-    public async Task OutputParametersEqualInputTest()
+    public void OutputFileNotFoundTest()
+    {
+        Assert.ThrowsAsync<ConvertException>(async () =>  await MockAndRunConvert(false));
+    }
+    
+    [Test]
+    public async Task CreateFileTest()
+    {
+        var result = await MockAndRunConvert(true);
+        Assert.That(result.ContentType, Is.EqualTo(contentType));
+        Assert.That(result.Name, Is.EqualTo(fileName + "." + outputExtension));
+    }
+
+    private async Task<MediaFile> MockAndRunConvert(bool createFile)
     {
         var files = new List<MediaFile>
         {
@@ -27,18 +42,23 @@ public class ConvertJobTests
                 Content = new byte[10]
             }
         };
-
+        
+        var mock = files.AsQueryable().BuildMockDbSet();
+        
+        
         var mediaFilesRepositoryMock = new Mock<IMediaFilesRepository>();
         mediaFilesRepositoryMock
             .Setup(x => x.MediaFiles)
-            .ReturnsDbSet(files);
+            .Returns(mock.Object);
+        mediaFilesRepositoryMock
+            .Setup(x => x.MediaFiles.AddAsync(It.IsAny<MediaFile>(), It.IsAny<CancellationToken>()))
+            .Callback<MediaFile, CancellationToken>((file, _) => files.Add(file));
 
 
-        var convertJob = new ConvertJobSpy(outputExtension, contentType, mediaFilesRepositoryMock.Object);
+        var convertJob = new FakeConvertJob(outputExtension, contentType, createFile, mediaFilesRepositoryMock.Object);
+        
+        var resultId = await convertJob.Convert(id);
 
-        var result = await convertJob.Convert(id);
-        Assert.That(convertJob.IsConvert, Is.True);
-        Assert.That(result.ContentType, Is.EqualTo(contentType));
-        Assert.That(result.FileName, Is.EqualTo(fileName + "." + outputExtension));
+        return files.Single(x => x.Id == resultId);
     }
 }

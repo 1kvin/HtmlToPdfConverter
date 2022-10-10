@@ -4,5 +4,6 @@ namespace HtmlToPdf.BusinessLogic.Services.Interfaces;
 
 public interface IMediaFileSaveService
 {
-    public Task<int> Save(IFormFile file);
+    public Task<int> SaveFromLocalToDb(IFormFile file);
+    public Task<string> SaveFromDbToLocal(int id);
 }

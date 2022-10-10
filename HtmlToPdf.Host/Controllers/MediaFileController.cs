@@ -14,11 +14,11 @@ public class MediaFileController : Controller
     }
 
     [HttpGet]
-    public IActionResult Download(string jobId)
+    public async Task<IActionResult> Download(string jobId)
     {
         try
         {
-            var convertResult = mediaFileConvertService.GetResult(jobId);
+            var convertResult = await mediaFileConvertService.GetResult(jobId);
 
             if (convertResult == null)
             {
@@ -30,6 +30,10 @@ public class MediaFileController : Controller
         catch (JobNotFoundException)
         {
             return NotFound($"Job {jobId} not found");
+        }
+        catch (FileNotFoundException)
+        {
+            return NotFound($"File not found");
         }
     }
 }

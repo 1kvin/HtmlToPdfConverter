@@ -21,7 +21,7 @@ public class HtmlToPdfJobTests
     {
         var result = await MockJobAndConvert(new byte[10]);
         
-        Assert.True(File.Exists(result.Path));
+        Assert.True(result.Content.Length != 0);
     }
 
     [Test]
@@ -30,15 +30,22 @@ public class HtmlToPdfJobTests
         var content = await File.ReadAllBytesAsync("TestData/Job/HtmlToPdfJob/1.html");
 
         var result = await MockJobAndConvert(content);
-        Assert.True(File.Exists(result.Path));
+        Assert.True(result.Content.Length != 0);
 
-
-        var resultPdf = ReadPdfFile(result.Path);
+        var saveFilePath = "TestData/1.pdf";
+        
+        await File.WriteAllBytesAsync(saveFilePath, result.Content);
+        
+        
+        var resultPdf = ReadPdfFile(saveFilePath);
         var expectedPdf = ReadPdfFile("TestData/Job/HtmlToPdfJob/-1.pdf");
+        
+        File.Delete(saveFilePath);
+        
         Assert.That(resultPdf, Is.EqualTo(expectedPdf));
     }
 
-    private async Task<ConvertResult> MockJobAndConvert(byte[] content)
+    private async Task<MediaFile> MockJobAndConvert(byte[] content)
     {
         var files = new List<MediaFile>
         {
@@ -55,10 +62,15 @@ public class HtmlToPdfJobTests
         mediaFilesRepositoryMock
             .Setup(x => x.MediaFiles)
             .ReturnsDbSet(files);
+        mediaFilesRepositoryMock
+            .Setup(x => x.MediaFiles.AddAsync(It.IsAny<MediaFile>(), It.IsAny<CancellationToken>()))
+            .Callback<MediaFile, CancellationToken>((file, _) => files.Add(file));
 
         var job = new HtmlToPdfJob(mediaFilesRepositoryMock.Object);
 
-        return await job.Convert(id);
+        var resultId = await job.Convert(id);
+
+        return files.Single(x => x.Id == resultId);
     }
 
     private string ReadPdfFile(string filePath)

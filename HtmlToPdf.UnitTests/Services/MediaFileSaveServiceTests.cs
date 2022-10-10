@@ -52,6 +52,6 @@ public class MediaFileSaveServiceTests
         fileStub.Setup(x => x.Length).Returns(size);
         fileStub.Setup(x => x.FileName).Returns(testFileName);
 
-        await mediaFileSaveService.Save(fileStub.Object);
+        await mediaFileSaveService.SaveFromLocalToDb(fileStub.Object);
     }
 }

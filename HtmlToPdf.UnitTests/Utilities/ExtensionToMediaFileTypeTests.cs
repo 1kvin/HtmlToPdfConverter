@@ -16,7 +16,8 @@ public class ExtensionToMediaFileTypeTests
     [Test]
     public void ConvertStingExtensionWithoutDotTest()
     {
-        Assert.Throws<NotSupportedException>(() => ExtensionToMediaFileType.Convert("pdf"));
+        var result = ExtensionToMediaFileType.Convert("pdf");
+        Assert.That(result, Is.EqualTo(MediaFileType.PDF));
     }
 
     [Test]
